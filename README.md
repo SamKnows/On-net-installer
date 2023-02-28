@@ -44,9 +44,9 @@ Ensure your servers have the necessary firewall and/or ACL rules permitted.
 
 The test_server_install.sh script needs to be run by the root user to work. On execution of the script you will be presented with three options. 
 
-Install
-List Changes
-Exit
+1) Install
+2) List Changes
+3) Exit
 
 It is recommended you select “1) Install”, which will then automatically make a number of changes to allow the On Net Server software to install. 
 
@@ -78,17 +78,13 @@ Note: We recommend opening a range of TCP and UDP ports for proper operation of 
 
 Entries with a shaded background are only required for managed installations.
 
-Source IP, Protocol(s), Port(s), Purpose
-
-ALL, TCP, 80 443, Test Traffic to Nginx (HTTP + HTTPS)
-
-ALL, TCP & UDP, 5000-7000, Test Traffic (SamKnows Applications)
-
-ALL, TCP, 8080, Test Traffic (SamKnows HTTP Server)
-
-ALL, TCP, 8000, Test Traffic (SamKnows UDP Server Control Port)
-
-ALL, UDP, 8001, Test Traffic (SamKnows UDP Server Measurement Port)
+| Source IP | Protocol(s) | Port(s)   | Purpose                                             |
+| --------- | ----------- | --------- | --------------------------------------------------- |
+| ALL       | TCP         | 80, 443   | Test Traffic to Nginx (HTTP + HTTPS)                |
+| ALL       | TCP & UDP   | 5000-7000 | Test Traffic (SamKnows Applications)                |
+| ALL       | TCP         | 8080      | Test Traffic (SamKnows HTTP Server)                 |
+| ALL       | TCP         | 8000      | Test Traffic (SamKnows UDP Server Control Port)     |
+| ALL       | UDP         | 8001      | Test Traffic (SamKnows UDP Server Measurement Port) |
 
 ## Outbound Firewall Rules
 
@@ -96,6 +92,6 @@ Note: These are only required if outbound access is denied by default. We recomm
 
 The firewalling should allow for the traffic from the Test applications on ports listed in the Inbound rules to reach the devices that will be using this server as a target.
 
-Destination IP, Protocol, Ports, Purpose
-
-109.74.201.56, TCP, 80 443, SamKnows Package Repository
+| Destination IP | Protocol(s) | Port(s) | Purpose                     |
+| -------------- | ----------- | ------- | --------------------------- |
+| 109.74.201.56  | TCP         | 80, 443 | SamKnows Package Repository |
