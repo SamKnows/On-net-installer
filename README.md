@@ -81,9 +81,13 @@ Entries with a shaded background are only required for managed installations.
 Source IP, Protocol(s), Port(s), Purpose
 
 ALL, TCP, 80 443, Test Traffic to Nginx (HTTP + HTTPS)
+
 ALL, TCP & UDP, 5000-7000, Test Traffic (SamKnows Applications)
+
 ALL, TCP, 8080, Test Traffic (SamKnows HTTP Server)
+
 ALL, TCP, 8000, Test Traffic (SamKnows UDP Server Control Port)
+
 ALL, UDP, 8001, Test Traffic (SamKnows UDP Server Measurement Port)
 
 ## Outbound Firewall Rules
