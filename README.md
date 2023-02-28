@@ -76,8 +76,6 @@ It is preferred that the test servers do not sit behind a hardware firewall or a
 
 Note: We recommend opening a range of TCP and UDP ports for proper operation of our services. We list the primary ports used by our applications for informative purposes.
 
-Entries with a shaded background are only required for managed installations.
-
 | Source IP | Protocol(s) | Port(s)   | Purpose                                             |
 | --------- | ----------- | --------- | --------------------------------------------------- |
 | ALL       | TCP         | 80, 443   | Test Traffic to Nginx (HTTP + HTTPS)                |
