@@ -42,9 +42,11 @@ Ensure your servers have the necessary firewall and/or ACL rules permitted.
 
 Downloading and executing the script can be done by cutting and pasting the following commands as the root user on the host you wish to install:
 
+```
 curl -O -s https://raw.githubusercontent.com/SamKnows/On-net-installer/master/test_server_install.sh
 chmod +x test_server_install.sh 
 ./test_server_install.sh 
+```
 
 ## Usage
 
@@ -65,7 +67,7 @@ The installation script will make the following changes:
 * Adds the SamKnows repo
 * Installs SamKnows test server software from the repo
 * Adds recommended sysctl changes for network tuning
-* Enable UFW and allows access to ports needed using UFW
+* Enables firewall UFW and allows access to ports needed using UFW
 * Installs Nginx (with optional SSL configuration)
 * Installs latest kernel with “fair queuing” enabled
 
