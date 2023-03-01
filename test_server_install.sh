@@ -9,6 +9,14 @@ if [[ "$EUID" -ne 0 ]]
   exit 1;
 fi
 
+# Am I running on Ubuntu 22.04?
+UBUNTU_VERSION=$(lsb_release -r)
+if [[ "$UBUNTU_VERSION" != *"22.04"* ]]
+  then echo "Error: Looks like this host is not Ubuntu 22.04. Currently only Ubuntu 22.04 is supported"
+  exit 1;
+fi
+
+
 REPO_ADDRESS="https://repo.samknows.com"
 SYSCTL_NAME=(net.core.rmem_max net.core.wmem_max net.core.rmem_default net.core.wmem_default net.core.netdev_max_backlog net.core.somaxconn net.ipv4.udp_rmem_min net.ipv4.udp_wmem_min net.ipv4.tcp_congestion_control net.ipv4.tcp_sack net.ipv4.tcp_timestamps net.ipv4.tcp_slow_start_after_idle net.ipv4.tcp_no_metrics_save net.ipv4.tcp_tw_reuse net.ipv4.tcp_fin_timeout net.ipv4.tcp_window_scaling net.core.default_qdisc)
 SYSCTL_VALUE=(26214400 26214400 524288 524288 40000 14000 128 128 cubic 1 1 1 0 0 60 1 fq)
@@ -82,10 +90,10 @@ check_hostname_resolves
 echo "Do you wish to Install SamKnows Defaults or print each change made and have the changes made for you or exit?"
 echo "This script can be stopped at any time and run multiple times without issue."
 echo 
-select yn in "Install" "List Changes" "Exit"; do
+select yn in "Install" "Verbose Install" "Exit"; do
   case $yn in
     "Install" ) MANUAL_INSTALL=false ; break;;
-    "List Changes" ) MANUAL_INSTALL=true ; break;;
+    "Verbose Install" ) MANUAL_INSTALL=true ; break;;
     "Exit" ) exit;;
   esac
 done
