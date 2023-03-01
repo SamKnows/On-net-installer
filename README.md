@@ -92,4 +92,4 @@ The firewalling should allow for the traffic from the Test applications on ports
 
 | Destination IP | Protocol(s) | Port(s) | Purpose                     |
 | -------------- | ----------- | ------- | --------------------------- |
-| 109.74.201.56  | TCP         | 80, 443 | SamKnows Package Repository |
+| ALL            | TCP         | 80, 443 | SamKnows Package Repository |
