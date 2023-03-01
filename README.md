@@ -40,31 +40,34 @@ Installation proceeds as follows:
 Ensure that your test servers meet the minimum specifications.
 Ensure your servers have the necessary firewall and/or ACL rules permitted.
 
+Downloading and executing the script can be done by cutting and pasting the following commands as the root user on the host you wish to install:
+
+curl -O -s https://raw.githubusercontent.com/SamKnows/On-net-installer/master/test_server_install.sh
+chmod +x test_server_install.sh 
+./test_server_install.sh 
+
 ## Usage
 
 The test_server_install.sh script needs to be run by the root user to work. On execution of the script you will be presented with three options. 
 
 1) Install
-2) List Changes
+2) Verbose Install
 3) Exit
 
-It is recommended you select “1) Install”, which will then automatically make a number of changes to allow the On Net Server software to install. 
-
-You may also choose “2) List Changes”, which will present each change in full before the change is made and you will be presented with an option to allow the change or not. 
-
-The third option is to do nothing and exit.
-
-## Installation Script Details
-
-The installation script used for unmanaged installations performs the following actions:
+The installation script will make the following changes:
 
 * Adds the SamKnows repo
 * Installs SamKnows test server software from the repo
 * Adds recommended sysctl changes for network tuning
-* Prints recommended firewall changes
+* Enable UFW and allows access to ports needed using UFW
 * Installs Nginx (with optional SSL configuration)
 * Installs latest kernel with “fair queuing” enabled
-* Reboots to enable the latest kernel
+
+It is recommended you select “1) Install”, which will then automatically make a number of changes to allow the On Net Server software to install. 
+
+You may also choose “2) Verbose Install”, which will present each change in full before the change is made and you will be presented with an option to allow the change or not. 
+
+The third option is to do nothing and exit.
 
 # Firewalls & Network Information
 
