@@ -180,8 +180,7 @@ if [[ ! -f "$NGINX_FILENAME" ]]
     else install_samknows_nginx
     echo "Installing Nginx webserver."
   fi
-  else echo "Nginx looks to be configured already. If the configuration needs to be regenerated do the following:"
-    echo "rm $NGINX_FILENAME"
+  else echo "Nginx looks to be configured already"
 fi
 
 i=0
