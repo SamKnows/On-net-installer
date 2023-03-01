@@ -54,6 +54,12 @@ The test_server_install.sh script needs to be run by the root user to work. On e
 2) Verbose Install
 3) Exit
 
+It is recommended you select “1) Install”, which will then automatically make a number of changes to allow the On Net Server software to install. 
+
+You may also choose “2) Verbose Install”, which will present each change in full before the change is made and you will be presented with an option to allow the change or not. 
+
+The third option is to do nothing and exit.
+
 The installation script will make the following changes:
 
 * Adds the SamKnows repo
@@ -62,12 +68,6 @@ The installation script will make the following changes:
 * Enable UFW and allows access to ports needed using UFW
 * Installs Nginx (with optional SSL configuration)
 * Installs latest kernel with “fair queuing” enabled
-
-It is recommended you select “1) Install”, which will then automatically make a number of changes to allow the On Net Server software to install. 
-
-You may also choose “2) Verbose Install”, which will present each change in full before the change is made and you will be presented with an option to allow the change or not. 
-
-The third option is to do nothing and exit.
 
 # Firewalls & Network Information
 
