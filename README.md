@@ -14,7 +14,7 @@ The minimum specification of a 10Gbps test server is as follows:
 * CPU: Quad Core Xeon (2GHz+)
 * RAM: 16GB
 * Disk: 250GB SSD
-* Operating System: Ubuntu 22.04 64-bit 
+* Operating System: Ubuntu 22.04 LTS
 * Connectivity: 10Gbps minimum, 100Gbps preferred*
 * IPv4 and IPv6 connectivity
 
@@ -23,7 +23,7 @@ For larger deployments, 100Gbps test servers are preferred. The recommended mini
 * CPU: 20+ cores at 2.4GHz+
 * RAM: 64GB
 * Disk: 250GB SSD
-* Operating System: Ubuntu 22.04 64-bit 
+* Operating System: Ubuntu 22.04 LTS
 * Connectivity: 100Gbps, with an nVidia/Mellanox ConnectX-5/6/7 card
 * IPv4 and IPv6 connectivity
 
