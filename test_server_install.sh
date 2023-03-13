@@ -89,6 +89,7 @@ check_hostname_resolves
 
 echo "Do you wish to Install SamKnows Defaults or print each change made and have the changes made for you or exit?"
 echo "This script can be stopped at any time and run multiple times without issue."
+echo "Installation of a SSL certificate and running a firewall are optional options asked when doing a Verbose Install."
 echo 
 select yn in "Install" "Verbose Install" "Exit"; do
   case $yn in
@@ -112,7 +113,7 @@ if [[ ! -f /etc/apt/sources.list.d/samknows.list  ]] || [[ ! -f /etc/apt/trusted
     select yn in "Yes" "No"; do
       case $yn in
         "Yes" ) install_samknows_repo; break;;
-        "No" ) break;;
+        "No" ) exit; break;;
      esac
     done
     else install_samknows_repo
@@ -145,7 +146,7 @@ if [[ ! -z "$PACKAGES_SUGGEST" ]]
     select yn in "Yes" "No"; do
       case $yn in
         "Yes" ) install_samknows_packages; break;;
-        "No" ) break;;
+        "No" ) exit; break;;
      esac
     done
     else install_samknows_packages
@@ -174,7 +175,7 @@ if [[ ! -f "$NGINX_FILENAME" ]]
     select yn in "Yes" "No"; do
       case $yn in
         "Yes" ) install_samknows_nginx; break;;
-        "No" ) break;;
+        "No" ) exit; break;;
       esac
     done
     else install_samknows_nginx
@@ -223,7 +224,7 @@ if [[ ! -z "$SYSCTL_SUGGEST" ]]
     select yn in "Yes" "No"; do
       case $yn in
         "Yes" ) install_samknows_sysconfig ; break;;
-        "No" ) break;;
+        "No" ) exit; break;;
      esac
     done
   else install_samknows_sysconfig
@@ -242,7 +243,7 @@ if [[ ! -z "$TC_SUGGEST" ]]
     select yn in "Yes" "No"; do
       case $yn in
         "Yes" ) install_samknows_fairqueuing ; break;;
-        "No" ) break;;
+        "No" ) exit; break;;
       esac
     done
   else install_samknows_fairqueuing
@@ -262,14 +263,15 @@ fi
 if [[ ! -d "/etc/letsencrypt/live/$FQDN_HOSTNAME" ]]
   then if $MANUAL_INSTALL
     then echo
-    echo "SamKnows recommends using LetsEncrypt to handle SSL certificate generation. Allow this script to generate an SSL certificate and configure Nginx to use it?"
-      select yn in "Yes" "No"; do
+    echo "SamKnows recommends using LetsEncrypt to handle SSL certificate generation. Allow this script to generate an SSL certificate and configure Nginx to use it? This step is optional."
+      select yn in "Yes" "No" "Skip"; do
         case $yn in
         "Yes" ) install_samknows_certbot ; break;;
         "No" ) exit;;
+        "Skip" ) NO_INSTALL_SSL=true; break;;
      esac
     done
-  else install_samknows_certbot
+  else install_samknows_certbot 
   echo "Registering the host with LetsEncrypt, generating a valid SSL and enabling it in Nginx."
   fi
   else echo "Letsencrypt looks like it is already setup, nothing to do."
@@ -277,33 +279,35 @@ fi
 
 CERTBOTCRON_INSTALLED=$(grep "certbot renew" /etc/crontab)
 
-if [[ -z $CERTBOTCRON_INSTALLED ]]
-  then if $MANUAL_INSTALL
-    then
-    echo
-    echo "Do you want to install a script in /etc/crontab to renew the LetsEncrypt SSL certificate automatically?"
-    echo "If you do not do this, you will need to renew the LetsEncrypt SSL certificate manually every 3 months."
-    SLEEPTIME=$(awk 'BEGIN{srand(); print int(rand()*(3600+1))}');
-    echo
-    echo 'echo "0 0,12 * * * root sleep $SLEEPTIME && certbot renew -q; systemctl reload nginx" >> /etc/crontab'
-    echo
-    select yn in "Yes" "No"; do
-      case $yn in
-      "Yes" ) install_samknows_certbotcron ; break;;
-      "No" ) exit;;
-    esac
-    done
+if ! [[ $NO_INSTALL_SSL ]] ; then
+  if [[ -z $CERTBOTCRON_INSTALLED ]]
+    then if $MANUAL_INSTALL
+      then
+      echo
+      echo "Do you want to install a script in /etc/crontab to renew the LetsEncrypt SSL certificate automatically?"
+      echo "If you do not do this, you will need to renew the LetsEncrypt SSL certificate manually every 3 months."
+      SLEEPTIME=$(awk 'BEGIN{srand(); print int(rand()*(3600+1))}');
+      echo
+      echo 'echo "0 0,12 * * * root sleep $SLEEPTIME && certbot renew -q; systemctl reload nginx" >> /etc/crontab'
+      echo
+      select yn in "Yes" "No"; do
+        case $yn in
+        "Yes" ) install_samknows_certbotcron ; break;;
+        "No" ) exit;;
+      esac
+        done
   else install_samknows_certbotcron
-  echo "Installing Letsencrypt script in /etc/crontab to auto renew certificate."
+    echo "Installing Letsencrypt script in /etc/crontab to auto renew certificate."
+    fi
+    else echo "Looks like a script in /etc/crontab is already renewing Letsencrypt, nothing to do."
   fi
-  else echo "Looks like a script in /etc/crontab is already renewing Letsencrypt, nothing to do."
 fi
 
 if [ "$UFW_CHECK" = "Status: inactive" ]
   then if $MANUAL_INSTALL
     then
     echo 
-    echo "UFW (Ubuntu FireWall) is currently disabled. Do you wish to enable UFW? Warning: Enabling UFW may break any other local firewall software."
+    echo "UFW (Ubuntu FireWall) is currently disabled. Do you wish to enable UFW? Warning: Enabling UFW may break any other local firewall software. This step is optional."
     select yn in "Yes" "No"; do
       case $yn in
         "Yes" ) install_samknows_firewallenable ; break;;
@@ -455,6 +459,7 @@ check_nginx_config () {
   if [[ $? -ne 0 ]]
   then
     echo "Error: Command nginx -t failed with error, configure looks corrupted. Please correct  before attempting to running again. Exiting."
+    echo "$NGINX_CONFIGCHECK"
     exit 1;
   fi
 }
