@@ -9,11 +9,28 @@ if [[ "$EUID" -ne 0 ]]
   exit 1;
 fi
 
-# Am I running on Ubuntu 22.04?
-UBUNTU_VERSION=$(lsb_release -r)
-if [[ "$UBUNTU_VERSION" != *"22.04"* ]]
-  then echo "Error: Looks like this host is not Ubuntu 22.04. Currently only Ubuntu 22.04 is supported"
-  exit 1;
+unsupported_error() {
+  
+  echo "Unsupported operating system detected."
+  echo
+  echo "Supported versions of Ubuntu are 20.04 LTS and 22.04 LTS (preferred). Exiting."
+  exit 2
+
+}
+
+# Am I running on Ubuntu 22.04 or 20.04?
+OS_NAME=$(lsb_release -i | awk '{ print $NF}')
+UBUNTU_VERSION=$(lsb_release -s -c)
+
+if [ "$OS_NAME" != "Ubuntu" ]; then
+  unsupported_error
+elif [ "$UBUNTU_VERSION" == "focal" ]; then
+  OEM="linux-oem-20.04b"
+elif [ "$UBUNTU_VERSION" == "jammy" ]; then
+  UBUNTU_VERSION="stable"
+  OEM="linux-oem-22.04b"
+else 
+  unsupported_error
 fi
 
 
@@ -21,11 +38,11 @@ REPO_ADDRESS="https://repo.samknows.com"
 SYSCTL_NAME=(net.core.rmem_max net.core.wmem_max net.core.rmem_default net.core.wmem_default net.core.netdev_max_backlog net.core.somaxconn net.ipv4.udp_rmem_min net.ipv4.udp_wmem_min net.ipv4.tcp_congestion_control net.ipv4.tcp_sack net.ipv4.tcp_timestamps net.ipv4.tcp_slow_start_after_idle net.ipv4.tcp_no_metrics_save net.ipv4.tcp_tw_reuse net.ipv4.tcp_fin_timeout net.ipv4.tcp_window_scaling net.core.default_qdisc)
 SYSCTL_VALUE=(26214400 26214400 524288 524288 40000 14000 128 128 cubic 1 1 1 0 0 60 1 fq)
 UFW_RULES=(80/tcp 443/tcp 5000:7000/tcp 5000:7000/udp 8080/tcp 8000/tcp 8001/udp 22/tcp)
-SAMKNOWS_PACKAGES=(skhttp-server skjitter-server sklatency-server sklightweightcapacity-server skudpspeed-server skwebsocket-speed-server nginx certbot python3-certbot-nginx ufw gawk linux-oem-22.04b)
+SAMKNOWS_PACKAGES=(skhttp-server skjitter-server sklatency-server sklightweightcapacity-server skudpspeed-server skwebsocket-speed-server nginx certbot python3-certbot-nginx ufw gawk $OEM)
 SYSCTL_FILE="/etc/sysctl.d/20-samknows.conf"
 TC_FILENAME="samknows-interfacequeue"
 TC_FILE="/etc/init.d/$TC_FILENAME"
-CERTBOT_EMAIL="karl@samknows.com"
+CERTBOT_EMAIL="jamie@samknows.com"
 
 TC_INIT='#!/bin/bash
 
@@ -105,7 +122,7 @@ if [[ ! -f /etc/apt/sources.list.d/samknows.list  ]] || [[ ! -f /etc/apt/trusted
     echo
     echo "This script will install SamKnows software from the SamKnows Package Repository, which needs to be enabled before we can proceed. The repository will be enabled with these commands:"
     echo 
-    echo echo "deb [arch=amd64] $REPO_ADDRESS/apt-repo stable main" \| sudo tee /etc/apt/sources.list.d/samknows.list
+    echo echo "deb [arch=amd64] $REPO_ADDRESS/apt-repo $UBUNTU_VERSION main" \| sudo tee /etc/apt/sources.list.d/samknows.list
     echo curl -L $REPO_ADDRESS/pubkey.asc -o /etc/apt/trusted.gpg.d/samknows.asc
     echo apt update
     echo
@@ -363,7 +380,7 @@ echo "Installation completed. It is highly recommended that this host be reboote
 } # Main End
 
 install_samknows_repo () {
-  echo "deb [arch=amd64] $REPO_ADDRESS/apt-repo stable main" > /etc/apt/sources.list.d/samknows.list
+  echo "deb [arch=amd64] $REPO_ADDRESS/apt-repo $UBUNTU_VERSION main" > /etc/apt/sources.list.d/samknows.list
   curl -s -L $REPO_ADDRESS/pubkey.asc -o /etc/apt/trusted.gpg.d/samknows.asc
   apt-get update -qq >> /dev/null
   apt-get check -qq
