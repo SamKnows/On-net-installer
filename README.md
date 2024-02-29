@@ -14,7 +14,7 @@ The minimum specification of a 10Gbps test server is as follows:
 * CPU: Quad Core Xeon (2GHz+)
 * RAM: 16GB
 * Disk: 250GB SSD
-* Operating System: Ubuntu 22.04 LTS
+* Operating System: Ubuntu 22.04 LTS (preferred), Ubuntu 20.04, Rocky Linux 9.x
 * Connectivity: 10Gbps minimum, 100Gbps preferred*
 * IPv4 and IPv6 connectivity
 
@@ -23,7 +23,7 @@ For larger deployments, 100Gbps test servers are preferred. The recommended mini
 * CPU: 20+ cores at 2.4GHz+
 * RAM: 64GB
 * Disk: 250GB SSD
-* Operating System: Ubuntu 22.04 LTS
+* Operating System: Ubuntu 22.04 LTS (preferred), Ubuntu 20.04, Rocky Linux 9.x
 * Connectivity: 100Gbps, with an nVidia/Mellanox ConnectX-5/6/7 card
 * IPv4 and IPv6 connectivity
 
@@ -40,13 +40,15 @@ Installation proceeds as follows:
 Ensure that your test servers meet the minimum specifications.
 Ensure your servers have the necessary firewall and/or ACL rules permitted.
 
-Downloading and executing the script can be done by cutting and pasting the following commands as the root user on the host you wish to install:
+Downloading and executing the script can be done by cutting and pasting the following commands as the root user on the host you wish to install, using the filename associated with the chosen operating system (Ubuntu or Rocky):
 
 ```
-curl -O -s https://raw.githubusercontent.com/SamKnows/On-net-installer/master/test_server_install.sh
+curl -O -s https://raw.githubusercontent.com/SamKnows/On-net-installer/master/test_server_installer_ubuntu.sh
 chmod +x test_server_install.sh 
 ./test_server_install.sh 
 ```
+
+Use `test_server_installer_ubuntu.sh` for Ubuntu 22.04 or 20.04. Use `test_server_installer_rocky_9.sh` for Rocky Linux 9.
 
 ## Usage
 
