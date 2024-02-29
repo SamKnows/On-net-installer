@@ -397,7 +397,7 @@ install_samknows_packages () {
     systemctl start $f
   done
 
-  dnf --enablerepo=elrepo-kernel install kernel-ml
+  dnf -y --enablerepo=elrepo-kernel install kernel-ml
   grubby --default-kernel
 
 }
