@@ -31,7 +31,6 @@ if [ "$OS_NAME" != "Rocky Linux" ]; then
 elif [ "$MAJOR_VERSION" == "8" ]; then
   OEM="linux-oem-20.04b"
 elif [ "$MAJOR_VERSION" == "9" ]; then
-  UBUNTU_VERSION="stable"
   OEM="linux-oem-22.04b"
 else
   unsupported_error
@@ -122,6 +121,7 @@ mkdir -p $INSTALL_DIR
 rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
 dnf install -y epel-release
 dnf install -y https://www.elrepo.org/elrepo-release-9.el9.elrepo.noarch.rpm
+sed -i 's/^mirrorlist/#mirrorlist/g' /etc/yum.repos.d/elrepo.repo # elrepo's mirror list can cause problems
 
 write_config_files
 check_hostname_resolves
@@ -397,7 +397,7 @@ install_samknows_packages () {
     systemctl start $f
   done
 
-  dnf -y --enablerepo=elrepo-kernel install kernel-ml
+  dnf -qy --enablerepo=elrepo-kernel install kernel-ml
   grubby --default-kernel
 
 }
