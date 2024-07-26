@@ -7,7 +7,7 @@ The overwhelming majority of test servers used by SamKnows customers are off-net
 
 ## Requirements
 
-On-net test servers can be either virtual machines or dedicated hardware. For dedicated servers, we strongly recommend that they only operate as test servers and are not used for any unrelated purpose (for example, as a web server or file server). 
+On-net test servers can be either virtual machines or dedicated hardware. For dedicated servers, we strongly recommend that they only operate as test servers and are not used for any unrelated purpose (for example, as a web server or file server).
 
 The minimum specification of a 10Gbps test server is as follows:
 
@@ -32,7 +32,7 @@ At a minimum, one publicly routable IPv4 address must be provisioned per server.
 # Server Management
 ## Provisioning on-net test servers
 
-ISPs are requested to complete an information form for each test server they wish to provision on their network. This will be provided by your SamKnows account manager. 
+ISPs are requested to complete an information form for each test server they wish to provision on their network. This will be provided by your SamKnows account manager.
 
 ## Installation
 
@@ -44,23 +44,23 @@ Downloading and executing the script can be done by cutting and pasting the foll
 
 ```
 curl -O -s https://raw.githubusercontent.com/SamKnows/On-net-installer/master/test_server_installer_ubuntu.sh
-chmod +x test_server_install.sh 
-./test_server_install.sh 
+chmod +x test_server_install.sh
+./test_server_install.sh
 ```
 
 Use `test_server_installer_ubuntu.sh` for Ubuntu 22.04 or 20.04. Use `test_server_installer_rocky_9.sh` for Rocky Linux 9.
 
 ## Usage
 
-The test_server_install.sh script needs to be run by the root user to work. On execution of the script you will be presented with three options. 
+The test_server_install.sh script needs to be run by the root user to work. On execution of the script you will be presented with three options.
 
 1) Install
 2) Verbose Install
 3) Exit
 
-It is recommended you select “1) Install”, which will then automatically make a number of changes to allow the On Net Server software to install. 
+It is recommended you select “1) Install”, which will then automatically make a number of changes to allow the On Net Server software to install.
 
-You may also choose “2) Verbose Install”, which will present each change in full before the change is made and you will be presented with an option to allow the change or not. 
+You may also choose “2) Verbose Install”, which will present each change in full before the change is made and you will be presented with an option to allow the change or not.
 
 The third option is to do nothing and exit.
 
@@ -100,3 +100,16 @@ The firewalling should allow for the traffic from the Test applications on ports
 | Destination IP | Protocol(s) | Port(s) | Purpose                     |
 | -------------- | ----------- | ------- | --------------------------- |
 | ALL            | TCP         | 80, 443 | SamKnows Package Repository |
+
+# System Adminstration
+
+The server applications are managed by systemd.
+
+Please avoid disabling any of the following essential processes or systemd units which implement the measurement servers:
+* skhttp_server
+* skjitter_server
+* sklatency_server
+* sklightweightcapacity_server
+* skudpspeed_server
+* skwebsocket_speed_server
+* dart
