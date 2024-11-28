@@ -1,0 +1,23 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides:       queuing
+# Required-Start:    $syslog 
+# Required-Stop:     $syslog 
+# Default-Start:     2 3 4 5
+# Default-Stop:      
+# Short-Description: applies fq queuing to interfaces
+# Description:       applies fq queuing to interfaces
+### END INIT INFO
+
+sysctl -q -w net.core.default_qdisc=fq
+
+for interface in `ip -br l | awk '$1 !~ "lo|vir|wl" { print $1}'` ; do
+  tc qdisc add dev $interface root fq 
+  tc qdisc del dev $interface root
+  tc qdisc replace dev $interface root mq
+  for QUEUE in $(tc qdisc show | grep "^qdisc fq" | awk '{ print $7 }')
+    do tc qdisc replace dev $interface parent "${QUEUE}" fq flow_limit 10000 maxrate 30gbit
+  done
+  ip link set dev $interface txqueuelen 10000
+done
