@@ -22,7 +22,7 @@ unsupported_error() {
 
 # Am I running on Rocky Linux 8 or 9?
 OS_NAME=$(grep "^NAME=" /etc/os-release | awk -F'=' '{ print $2 }' | tr -d '"')
-ROCKY_VERSION_ID=$(grep "^VERSION_ID" /etc/os-release | awk -F'=' '{ print $2 }' | tr -d '"')
+ROCKY_VERSION_ID=$(grep "^VERSION_ID" /etc/os-release | awk -F'=' '{ print $2 }' | tr -d '"' | cut -c1)
 MAJOR_VERSION=$(printf "%0.f" "$ROCKY_VERSION_ID")
 
 
@@ -44,39 +44,11 @@ SYSCTL_VALUE=(26214400 26214400 524288 524288 40000 14000 128 128 cubic 1 1 1 0 
 FW_RULES=(80/tcp 443/tcp 5000-7000/tcp 5000-7000/udp 8080/tcp 8000/tcp 8001/udp 22/tcp)
 SAMKNOWS_PACKAGES=(skhttp_server skjitter_server sklatency_server sklightweightcapacity_server skudpspeed_server skwebsocket_speed_server)
 EXTRA_PACKAGES=(nginx certbot python3-certbot-nginx gawk firewalld)
-SYSCTL_FILE="/etc/sysctl.d/20-samknows.conf"
+SYSCTL_FILE="/etc/sysctl.d/20-network_tuning.conf"
 CERTBOT_EMAIL="jamie@samknows.com"
-
-SYSCTL_CONTENTS='net.core.rmem_max = 8388608
-net.core.wmem_max = 8388608
-net.core.rmem_default = 131072
-net.core.wmem_default = 131072
-net.core.netdev_max_backlog = 1000
-net.core.somaxconn = 15000
-net.ipv4.udp_rmem_min = 128
-net.ipv4.udp_wmem_min = 128
-net.ipv4.tcp_congestion_control = cubic
-net.ipv4.tcp_sack = 1
-net.ipv4.tcp_rmem = 4096 131072 8388608
-net.ipv4.tcp_wmem = 4096 131072 8388608
-net.ipv4.tcp_timestamps = 1
-net.ipv4.tcp_slow_start_after_idle = 1
-net.ipv4.tcp_no_metrics_save = 0
-net.ipv4.tcp_tw_reuse = 0
-net.ipv4.tcp_fin_timeout = 60
-net.ipv4.tcp_window_scaling = 1
-net.core.default_qdisc = fq
-'
+MAIN_INTERFACE=$(ip route get 8.8.8.8 | awk -- '{printf $5}')
 
 FQ_FILE="/etc/NetworkManager/dispatcher.d/pre-up.d/50-add_fair_queuing.sh"
-FQ_FILE_CONTENTS='#!/bin/bash
-
-for interface in `ip -br l | grep -v "lo\|vir\|wl" | awk '"'"'{ print $1}'"'"'` ; do
-    tc qdisc add dev $interface root fq
-    tc qdisc del dev $interface root
-done
-'
-
 
 NGINX_FILENAME="/etc/nginx/conf.d/90_samknows_nginx.conf"
 WEBTEST_FILENAME="/usr/share/nginx/html/web_test/"
@@ -112,6 +84,8 @@ server {
                 }
         }
 }'
+
+HUND_SYSCTL_FILENAME='/etc/sysctl.d/21-network_tuning_100gbps.conf'
 
 main () {
 
@@ -214,7 +188,7 @@ fi
 if $MANUAL_INSTALL
   then echo "SamKnows recommends the following linux kernel settings:"
   echo
-  cat ${INSTALL_DIR}/20_samknows_sysctl_network_tuning.conf
+  curl https://raw.githubusercontent.com/SamKnows/On-net-installer/refs/heads/master/files/etc/sysctl.d/20-network_tuning.conf
   echo
   echo "Would you like to save these settings to $SYSCTL_FILE and apply them so they are loaded on reboot?"
   select yn in "Yes" "No"; do
@@ -228,11 +202,38 @@ else install_samknows_sysconfig
 fi
 
 
-if [[ ! -z "$TC_SUGGEST" ]]
+#Apply 100G tweaks to interfaces equal to or greater than 40G
+if [[ -f /sys/class/net/$MAIN_INTERFACE/speed ]]
+  then MAIN_INTERFACE_SPEED=$(cat /sys/class/net/$MAIN_INTERFACE/speed)
+  else
+    MAIN_INTERFACE_SPEED=10000
+    echo "Could not determine main interface speed. Does this server have an interface running at 40G or higher?"
+    select yn in "Yes" "No"; do
+      case $yn in
+        "Yes" ) MAIN_INTERFACE_SPEED=40000 ; break;;
+        "No" ) MAIN_INTERFACE_SPEED=10000 ; break ;;
+      esac
+    done
+fi
+if [[ $MAIN_INTERFACE_SPEED -ge 40000 ]]
+  then if $MANUAL_INSTALL
+    then echo "40G or higher interface speed detected."
+    echo "SamKnows has additional TCP tuning for higher test accuracy."
+    echo "Would you like to save these settings and apply them so they are loaded on reboot?"
+    select yn in "Yes" "No"; do
+      case $yn in
+        "Yes" ) apply_100g_tweaks ; break;;
+        "No" ) exit; break;;
+      esac
+    done
+  else apply_100g_tweaks
+  echo "Applying TCP tuning for main interface due to >40G speeds."
+  fi
+else if [[ ! -z "$TC_SUGGEST" ]]
   then if $MANUAL_INSTALL
     then echo
     echo "SamKnows recommends changing interface queuing to Fair Queuing for improved performance:"
-    echo "$TC_SUGGEST"
+    echo "$TC_SUGGEST" 
     echo
     echo "Would you like to save these settings to $TC_FILE and apply them so they are loaded on reboot?"
     select yn in "Yes" "No"; do
@@ -242,9 +243,10 @@ if [[ ! -z "$TC_SUGGEST" ]]
       esac
     done
   else install_samknows_fairqueuing
-  echo "Applying to primary interface Fair Queuing queuing algorithm."
+  echo "Applying to all interfaces Fair Queuing queuing algorithm."
   fi
-  else echo "Fair Queuing on primary interface already applied correctly."
+  else echo "Fair Queuing on all interfaces already applied correctly."
+  fi
 fi
 
 FW_CHECK=$(firewall-cmd --list-all 2>&1)
@@ -419,7 +421,7 @@ install_samknows_nginx () {
 install_samknows_sysconfig () {
   if [[ ! -f $SYSCTL_FILE ]]
     then
-    cp ${INSTALL_DIR}/20_samknows_sysctl_network_tuning.conf  "$SYSCTL_FILE" ;
+    curl https://raw.githubusercontent.com/SamKnows/On-net-installer/refs/heads/master/files/etc/sysctl.d/20-network_tuning.conf > $SYSCTL_FILE ;
     sysctl -q -p $SYSCTL_FILE
   else
     echo "File $SYSCTL_FILE exists already, skipping."
@@ -429,7 +431,7 @@ install_samknows_sysconfig () {
 
 install_samknows_fairqueuing () {
   if [[ ! -f "$FQ_FILE" ]]
-    then echo "$FQ_FILE_CONTENTS" > "$FQ_FILE"
+    then curl https://raw.githubusercontent.com/SamKnows/On-net-installer/refs/heads/master/files/etc/init.d/samknows-interfacequeue > "$FQ_FILE"
     chmod +x "$FQ_FILE"
     eval "$FQ_FILE"
   else
@@ -447,6 +449,38 @@ install_samknows_firewallrules () {
     do eval $o >> /dev/null 2>&1
   done
   firewall-cmd --reload
+}
+
+apply_100g_tweaks () {
+  TC_FILENAME="samknows-interfacequeue-100g"
+  TC_FILE="/etc/NetworkManager/dispatcher.d/pre-up.d/50-add_fair_queuing.sh"
+  if [[ ! -f "$TC_FILE" ]]
+    then curl https://raw.githubusercontent.com/SamKnows/On-net-installer/refs/heads/master/files/etc/init.d/samknows-interfacequeue-100g > "$TC_FILE"
+    chmod +x "$TC_FILE"
+    eval "$TC_FILE"
+    echo "Fair Queuing settings saved to $TC_FILE"
+  else 
+    echo "File $TC_FILE exists but Fair Queuing is not enabled. Can not proceed."
+    exit 2
+  fi
+
+  sysctl -q -w net.core.default_qdisc=fq
+
+  for interface in `ip -br l | awk '$1 !~ "lo|vir|wl" { print $1}'` ; do
+    tc qdisc add dev $interface root fq 
+    tc qdisc del dev $interface root
+    tc qdisc replace dev $interface root mq
+    for QUEUE in $(tc qdisc show | grep "^qdisc fq" | awk '{ print $7 }')
+      do tc qdisc replace dev $interface parent "${QUEUE}" fq flow_limit 10000 maxrate 30gbit
+    done
+    ip link set dev $interface txqueuelen 10000
+  done
+  if [[ ! -f $HUND_SYSCTL_FILENAME ]]
+    then touch $HUND_SYSCTL_FILENAME
+  fi
+  curl https://raw.githubusercontent.com/SamKnows/On-net-installer/refs/heads/master/files/etc/sysctl.d/21-network_tuning_100gbps.conf > $HUND_SYSCTL_FILENAME
+  echo "TCP tuning settings saved to $HUND_SYSCTL_FILENAME"
+  sysctl -q -p
 }
 
 install_samknows_certbot () {
