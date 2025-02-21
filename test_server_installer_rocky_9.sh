@@ -93,7 +93,8 @@ INSTALL_DIR=/opt/samknows/installer
 mkdir -p $INSTALL_DIR
 
 rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
-dnf install -y epel-release
+rpm --import https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-9
+dnf install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
 dnf install -y https://www.elrepo.org/elrepo-release-9.el9.elrepo.noarch.rpm
 sed -i 's/^mirrorlist/#mirrorlist/g' /etc/yum.repos.d/elrepo.repo # elrepo's mirror list can cause problems
 
