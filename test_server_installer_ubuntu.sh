@@ -112,7 +112,7 @@ if [[ ! -f /etc/apt/sources.list.d/samknows.list  ]] || [[ ! -f /etc/apt/trusted
     select yn in "Yes" "No"; do
       case $yn in
         "Yes" ) install_samknows_repo; break;;
-        "No" ) exit; break;;
+        "No" ) echo "Skipping this step"; break;;
      esac
     done
     else install_samknows_repo
@@ -145,7 +145,7 @@ if [[ ! -z "$PACKAGES_SUGGEST" ]]
     select yn in "Yes" "No"; do
       case $yn in
         "Yes" ) install_samknows_packages; break;;
-        "No" ) exit; break;;
+        "No" ) echo "Skipping this step"; break;;
      esac
     done
     else install_samknows_packages
@@ -174,7 +174,7 @@ if [[ ! -f "$NGINX_FILENAME" ]]
     select yn in "Yes" "No"; do
       case $yn in
         "Yes" ) install_samknows_nginx; break;;
-        "No" ) exit; break;;
+        "No" ) echo "Skipping this step"; break;;
       esac
     done
     else install_samknows_nginx
@@ -235,7 +235,7 @@ if [[ $MAIN_INTERFACE_SPEED -ge 40000 ]]
     select yn in "Yes" "No"; do
       case $yn in
         "Yes" ) apply_100g_tweaks ; break;;
-        "No" ) exit; break;;
+        "No" ) echo "Skipping this step"; break;;
       esac
     done
   else apply_100g_tweaks
@@ -251,7 +251,7 @@ else if [[ ! -z "$TC_SUGGEST" ]]
     select yn in "Yes" "No"; do
       case $yn in
         "Yes" ) install_samknows_fairqueuing ; break;;
-        "No" ) exit; break;;
+        "No" ) echo "Skipping this step"; break;;
       esac
     done
   else install_samknows_fairqueuing
@@ -270,7 +270,7 @@ if [[ ! -z "$SYSCTL_SUGGEST" ]]
     select yn in "Yes" "No"; do
       case $yn in
         "Yes" ) install_samknows_sysconfig ; break;;
-        "No" ) exit; break;;
+        "No" ) echo "Skipping this step"; break;;
      esac
     done
   else install_samknows_sysconfig
@@ -294,7 +294,7 @@ if [[ ! -d "/etc/letsencrypt/live/$FQDN_HOSTNAME" ]]
       select yn in "Yes" "No" "Skip"; do
         case $yn in
         "Yes" ) install_samknows_certbot ; break;;
-        "No" ) exit;;
+        "No" ) NO_INSTALL_SSL=true; break;;
         "Skip" ) NO_INSTALL_SSL=true; break;;
      esac
     done
@@ -320,7 +320,7 @@ if ! [[ $NO_INSTALL_SSL ]] ; then
       select yn in "Yes" "No"; do
         case $yn in
         "Yes" ) install_samknows_certbotcron ; break;;
-        "No" ) exit;;
+        "No" ) echo "Skipping this step";;
       esac
         done
   else install_samknows_certbotcron
@@ -419,10 +419,7 @@ install_samknows_sysconfig () {
     sysctl -q -p 
     service procps force-reload 
   else 
-    echo "File $SYSCTL_FILE exists and needs to be replaced."
-    echo "Do the following and run this script again to fix"
-    echo "rm $SYSCTL_FILE"
-    exit 2
+    echo "File $SYSCTL_FILE exists already. Nothing to do."
   fi
 }
 
@@ -436,7 +433,7 @@ apply_100g_tweaks () {
     eval "$TC_FILE"
     echo "Fair Queuing settings saved to $TC_FILE"
   else 
-    echo "File $TC_FILE exists but Fair Queuing is not enabled. Can not proceed."
+    echo "File $TC_FILE exists already. Nothing to do."
     exit 2
   fi
 
@@ -468,7 +465,7 @@ install_samknows_fairqueuing () {
     update-rc.d "$TC_FILENAME" defaults
     eval "$TC_FILE"
   else 
-    echo "File $TC_FILE exists but Fair Queuing is not enabled. Can not proceed."
+    echo "File $TC_FILE exists already. Nothing to do."
     exit 2
   fi
 }
